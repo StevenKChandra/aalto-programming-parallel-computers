@@ -1,0 +1,8 @@
+.vscode
+*.zip
+*/.ppc
+*/benchmarks
+*/tests
+*/.gitignore
+*/grading
+*/*.exe
