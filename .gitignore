@@ -1,8 +1,8 @@
 .vscode
 *.zip
-*/.ppc
-*/benchmarks
-*/tests
-*/.gitignore
-*/grading
-*/*.exe
+**/.ppc
+**/benchmarks
+**/tests
+**/.gitignore
+**/grading
+**/*.exe

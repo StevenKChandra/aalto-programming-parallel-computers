@@ -1,4 +1,3 @@
-#include <cmath>
 /*
 This is the function you need to implement. Quick reference:
 - input rows: 0 <= y < ny
@@ -7,6 +6,8 @@ This is the function you need to implement. Quick reference:
 - correlation between rows i and row j has to be stored in result[i + j*ny]
 - only parts with 0 <= j <= i < ny need to be filled
 */
+
+#include <cmath>
 
 void correlate(int ny, int nx, const float *data, float *result) {
     for (int i = 0; i < ny; i++) {
@@ -41,12 +42,3 @@ void correlate(int ny, int nx, const float *data, float *result) {
         }
     }
 }
-
-// int main () {
-//     float result[4];
-//     float data[4] = { -1.0f, 1.0f, -1.0f, 1.0f };
-//     int ny = 2;
-//     int nx = 2;
-//     correlate(ny, nx, data, result);
-//     return 0;
-// }
