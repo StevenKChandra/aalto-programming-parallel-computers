@@ -13,7 +13,7 @@ void correlate(int ny, int nx, const float *data, float *result) {
     double* row_average = new double[ny] {0};
     
     #pragma omp parallel for
-    // main row average iteration, pararellized
+    // row average calculation
     for (int i = 0; i < ny; i++) {   
         const float* row = data + i * nx;
         for (int j = 0; j < nx; j++) {
@@ -22,9 +22,9 @@ void correlate(int ny, int nx, const float *data, float *result) {
         row_average[i] /= nx;
     }
 
-    // calculate x average - x_i
+    // x_average - x_i and (sigma x_average - x_i) square calculation
     double* xbar_xi = new double[ny * nx];
-    double* xbar_xi_sqr = new double[ny] {0.0f};
+    double* xbar_xi_sq = new double[ny] {0.0f};
     
     #pragma omp parallel for
     for (int i = 0; i < ny; i++) {
@@ -37,7 +37,7 @@ void correlate(int ny, int nx, const float *data, float *result) {
 
         for (int j = 0; j < nx; j++) {
             double x = xrow[j];
-            xbar_xi_sqr[i] += x * x;
+            xbar_xi_sq[i] += x * x;
         }
     }
     delete[] row_average;
@@ -49,15 +49,15 @@ void correlate(int ny, int nx, const float *data, float *result) {
         for (int j = 0; j < i; j++) {
             const double *y = xbar_xi + j * nx;
             double numerator = 0.0f;
-            // main pearson correlation iteration, pararellized
+            
             for (int k = 0; k < nx; k++){
                 numerator += x[k] * y[k];
             }
-            result[i + j*ny] = (float) (numerator / sqrt(xbar_xi_sqr[i] * xbar_xi_sqr[j]));
+            result[i + j*ny] = (float) (numerator / sqrt(xbar_xi_sq[i] * xbar_xi_sq[j]));
         }
         result[i + i*ny] = 1.0f;
     }
 
     delete[] xbar_xi;
-    delete[] xbar_xi_sqr;
+    delete[] xbar_xi_sq;
 }

@@ -10,35 +10,54 @@ This is the function you need to implement. Quick reference:
 #include <cmath>
 
 void correlate(int ny, int nx, const float *data, float *result) {
+    double* row_average = new double[ny] {0};
+
+    // row average calculation
     for (int i = 0; i < ny; i++) {
         const float* x = data + i*nx;
-        double x_average = 0;
 
         for (int k = 0; k < nx; k++) {
-            x_average += x[k];
+            row_average[i] += x[k];
         }
-        x_average /= nx;
+        row_average[i] /= nx;
+    }
 
-        for (int j = 0; j <= i; j++) {
-            const float *y = data + j*nx;
-            double y_average = 0;
+    // x_average - x_i and (sigma x_average - x_i) square calculation
+    double* xbar_xi = new double[ny * nx];
+    double* xbar_xi_sqr = new double[ny] {0.0f};
 
-            for (int k = 0; k < nx; k++) {
-                y_average += y[k];
-            }
-            y_average /= nx;
+    for (int i = 0; i < ny; i++) {
+        double* xrow = xbar_xi + i * nx;
+        const float* drow = data + i * nx;
+        double average = row_average[i];
 
-            double numerator = 0;
-            double denumerator_left = 0;
-            double denumerator_right = 0;
-            for (int k = 0; k < nx; k++) {
-                double x_cal = (x_average - x[k]);
-                double y_cal = (y_average - y[k]);
-                numerator += x_cal * y_cal;
-                denumerator_left += x_cal * x_cal; 
-                denumerator_right += y_cal * y_cal; 
-            }
-            result[i + j*ny] = static_cast<float> (numerator / sqrt(denumerator_left * denumerator_right));
+        for (int j = 0; j < nx; j++) {
+            xrow[j] = average - drow[j];
+        }
+
+        for (int j = 0; j < nx; j++) {
+            double x = xrow[j];
+            xbar_xi_sqr[i] += x * x;
         }
     }
+    delete[] row_average;
+
+    // pearson correlation calculation
+    for (int i = 0; i < ny; i++) {   
+        const double* x = xbar_xi + i * nx;
+        
+        for (int j = 0; j < i; j++) {
+            const double *y = xbar_xi + j * nx;
+            double numerator = 0.0f;
+
+            for (int k = 0; k < nx; k++){
+                numerator += x[k] * y[k];
+            }
+            result[i + j*ny] = (float) (numerator / sqrt(xbar_xi_sqr[i] * xbar_xi_sqr[j]));
+        }
+        result[i + i*ny] = 1.0f;
+    }
+
+    delete[] xbar_xi;
+    delete[] xbar_xi_sqr;
 }

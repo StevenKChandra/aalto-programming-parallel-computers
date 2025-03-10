@@ -11,24 +11,28 @@ This is the function you need to implement. Quick reference:
 
 void correlate(int ny, int nx, const float *data, float *result) {
     
-    // number of pararell instruction
+    // number of parallel instruction
     const int np = 4;
-    // number of row iteration that can be pararellized
-    int ncol = nx / np;
-    // the remainder
-    int nrem = nx % np;
+    // number of column iteration that can be parallelized
+    const int ncol = nx / np;
+    // remaining iterations that is not parallelized
+    const int nrem = nx % np;
     // array of average of each matrix row
     double* row_average = new double[ny] {0};
 
-    // main row average iteration, pararellized
+    // row average iteration
     for (int i = 0; i < ny; i++) {   
         const float* row = data + i * nx;
         double total[np] = {0};
+
+        // parallelized instructions
         for (int j = 0; j < ncol; j++) {
             for (int k = 0; k < np; k++){
                 total[k] += row[j * np + k];
             }
         }
+        
+        // remaining instructions
         for (int k = 0; k < nrem; k++){
             total[k] += row[ncol * np + k];
         }
@@ -39,7 +43,7 @@ void correlate(int ny, int nx, const float *data, float *result) {
         row_average[i] /= nx;
     }
 
-    // calculate x average - x_i
+    // x_average - x_i and (sigma x_average - x_i square) calculation
     double* xbar_xi = new double[ny * nx];
     double* xbar_xi_sqr = new double[ny] {0.0f};
 
@@ -47,21 +51,24 @@ void correlate(int ny, int nx, const float *data, float *result) {
         double* xrow = xbar_xi + i * nx;
         const float* drow = data + i * nx;
         double average = row_average[i];
+        // parallelized instruction
         for (int j = 0; j < ncol; j++) {
             for (int k = 0; k < np; k++){
                 xrow[j * np + k] = average - drow[j * np + k];
             }
         }
+        // remaining instructions
         for (int k = 0; k < nrem; k++){
             xrow[ncol * np + k] = average - drow[ncol * np + k];;
         }
-
+        // parallelized instruction
         for (int j = 0; j < ncol; j++) {
             for (int k = 0; k < np; k++){
                 double x = xrow[j * np + k];
                 xbar_xi_sqr[i] += x * x;
             }
         }
+        // remaining instructions
         for (int k = 0; k < nrem; k++){
             double x = xrow[ncol * np + k];
             xbar_xi_sqr[i] += x * x;
@@ -76,21 +83,18 @@ void correlate(int ny, int nx, const float *data, float *result) {
             const double *y = xbar_xi + j * nx;
 
             double numerator[np] = {0};
-
-            // main pearson correlation iteration, pararellized
+            // parallelized instruction
             for (int k = 0; k < ncol; k++){
                 for (int l = 0; l < np; l++) {
                     numerator[l] += x[k * np + l] * y[k * np + l];
                 }
             }
-
-            // remainder iteration
+            // remaining instructions
             for (int l = 0; l < nrem; l++) {
                 numerator[l] += x[ncol * np + l] * y[ncol * np + l];
             }
             
             double num = 0;
-
             for (int k = 0; k < np; k++) {
                 num += numerator[k];
             }
