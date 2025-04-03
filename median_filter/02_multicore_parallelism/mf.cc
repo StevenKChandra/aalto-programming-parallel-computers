@@ -10,8 +10,9 @@ This is the function you need to implement. Quick reference:
   in out[x + y*nx].
 */
 void mf(int ny, int nx, int hy, int hx, const float *in, float *out) {
-    float* frame = new float[(2 * hy + 1) * (2 * hx + 1)];
+    #pragma omp parallel for
     for (int i = 0; i < ny; i++) {
+        float* frame = new float[(2 * hy + 1) * (2 * hx + 1)];
         for (int j = 0; j < nx; j++) {
             int y_start = 0 > i - hy ? 0 : i - hy;
             int y_end = ny < i + hy + 1 ? ny : i + hy + 1;
@@ -32,6 +33,6 @@ void mf(int ny, int nx, int hy, int hx, const float *in, float *out) {
             std::nth_element(frame, frame + count/2, frame + count);
             out[i * nx + j] = frame[count/2];
         }
+        delete[] frame;
     }
-    delete[] frame;
 }
