@@ -20,7 +20,7 @@ constexpr int vs = 4; // number of double type that fits into a vector register
 constexpr int nb = 4; // number of block size to process each iteration
 
 void correlate(int ny, int nx, const float *data, float *result) {
-    // TODO: try using the AVX 512 instruction and cahce reuse
+    // TODO: try using the AVX 512 instruction and cachee reuse
 
     const int vc = (nx - 1 + vs) / vs; // number of vector column
     const int nv = nx / vs; // number of iteration using vector
